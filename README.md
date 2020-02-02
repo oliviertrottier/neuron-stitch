@@ -28,6 +28,8 @@ Image_stitched = stitch_all(Images);
 ## Performance
 The following images are included in the `images` folder as an example:
 
+(Image examples coming soon)
+
 <img src="images/Neuron_a.png" height=200 /> <img src="images/Neuron_b.png" height=200 /> <img src="images/Neuron_c.png" height=200 />
 
 The resulting stitched image is:
