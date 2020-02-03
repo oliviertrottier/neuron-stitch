@@ -1,5 +1,6 @@
 %% Read all images and store them in a cell array.
 image_files = dir('./images/*.png');
+image_files = image_files(~contains({image_files.name},'stitched'));
 N_images = numel(image_files);
 images = cell(N_images,1);
 for i=1:N_images
