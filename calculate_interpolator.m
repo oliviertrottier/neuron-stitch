@@ -55,6 +55,11 @@ N_rectangles_subtracted = size(Region_rectangles,2);
 rectangle_labels = cellfun(@(x) ['R',num2str(x)],num2cell(1:N_rectangles_subtracted+1),'Uni',0);
 set_formula = join(rectangle_labels,'-');
 boundaries = decsg([Initial_rectangle Region_rectangles],set_formula{1},cell2mat(rectangle_labels')');
+
+% The boundaries' limits are given in pixel coordinats. 
+% Ensure that the boundaries limits are integers by rounding.
+boundaries = round(boundaries);
+
 N_boundaries = size(boundaries,2);
 
 % Determine the type of each boundary.
@@ -74,7 +79,7 @@ if options.Plots
     Model = createpde;
     geometryFromEdges(Model,boundaries);
     pdegplot(Model,'EdgeLabels','on');
-    title('Edge Labels');
+    title('Edge Labels'); xlabel('Column index'); ylabel('Row index');
     a=gca;a.YDir='reverse';
 end
 
@@ -104,9 +109,9 @@ switch options.Method
         assert(all(~isnan(T)),'The temperature calculation is erroneous.');
         
         % Interpolate the coarse interpolator to obtain a finer interpolator on a uniform grid.
-        [mask_grid_y,mask_grid_x] = ndgrid(mask_size(1):-1:1,1:mask_size(2));
+        [mask_grid_row,mask_grid_col] = ndgrid(1:mask_size(1),1:mask_size(2));
         Interpolant = scatteredInterpolant(triangular_mesh.Nodes(1,:)',triangular_mesh.Nodes(2,:)',T,'linear','linear');
-        grid_interpolator = Interpolant(mask_grid_x,mask_grid_y);
+        grid_interpolator = Interpolant(mask_grid_col,mask_grid_row);
         grid_interpolator(mask>0) = mask(mask>0);
         
         if any(isnan(grid_interpolator(:)))
@@ -117,6 +122,7 @@ switch options.Method
             figure;
             pdeplot(thermalmodelS,'XYData',T,'Contour','on','ColorMap','hot');
             title('Temperature field')
+            a=gca; a.YDir='reverse'; xlabel('Column index'); ylabel('Row index');
             axis equal tight
         end
         
@@ -132,16 +138,17 @@ switch options.Method
         
         % V(0,y) = 1
         % V(1,y) = 0
-        [mask_grid_y,mask_grid_x] = ndgrid(mask_size(1):-1:1,1:mask_size(2));
+        [mask_grid_row,mask_grid_col] = ndgrid(1:mask_size(1),1:mask_size(2));
         
-        % Normalize the grid coordinates to (0,1).
-        grid_y = (mask_grid_y - 1)/(mask_size(1) - 1);
-        grid_x = (mask_grid_x - 1)/(mask_size(2) - 1);
+        % Create a normalized x,y grid coordinates. Each coordinate spans
+        % from 0 to 1 and the y coordinate decreases for increasing rows.
+        grid_y = flip((mask_grid_row - 1)/(mask_size(1) - 1),1);
+        grid_x = (mask_grid_col - 1)/(mask_size(2) - 1);
         grid_interpolator = ones(mask_size);
         
         % Add the solution that fixes the horizontal boundary.
-        bottom_boundary_type = Boundary_type(all(boundaries(4:5,:)==1,1));
-        top_boundary_type = Boundary_type(all(boundaries(4:5,:)==mask_size(1),1));
+        top_boundary_type = Boundary_type(all(boundaries(4:5,:)==1,1));
+        bottom_boundary_type = Boundary_type(all(boundaries(4:5,:)==mask_size(1),1));
         if bottom_boundary_type==2
             % V(x,0) = 2
             % V(x,1) = 1
@@ -175,7 +182,8 @@ end
 % Plot the final interpolator.
 if options.Plots
     figure;
-    imagesc([mask_grid_x(1) mask_grid_x(end)],[mask_grid_y(1) mask_grid_y(end)],grid_interpolator); a=gca; a.YDir='normal';
+    imagesc([mask_grid_col(1) mask_grid_col(end)],[mask_grid_row(1) mask_grid_row(end)],grid_interpolator);
+    a=gca; a.YDir='reverse'; xlabel('Column index'); ylabel('Row index');
     colorbar;
     axis equal tight
     title('Interpolator field')
