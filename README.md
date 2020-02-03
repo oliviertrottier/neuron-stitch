@@ -40,4 +40,4 @@ This algorithm was tested on a set of 16 bit images with a constant exposure tim
 
 
 ## Acknowledgement
-We thank Sonal Shree for providing us with images of Class IV neurons using confocal microscopy.
+We thank Sonal Shree ([Google Scholar](https://scholar.google.com/citations?user=9wAaRw8AAAAJ&hl=en), [ORCID](https://orcid.org/0000-0002-5665-8157)) for providing us with images of Class IV neurons using confocal microscopy.
